@@ -48,7 +48,7 @@ public class DriveTuner extends OpMode {
         // Since we only want to move forward,
 //        set the y target position to 20 and everything else to 0.
 //        This will move the robot in the forward direction 20 inches.*/
-        robot.driveTrain.goToPosition(new CurvePoint(targetX, targetY) , new CurvePoint(targetH));
+        robot.driveTrain.goToPosition(new CurvePoint(targetX, targetY) , new CurvePoint(targetH), 0.5);
         telemetry.addData("odometry X : ", robot.driveTrain.localizer.getPose().getX());
         telemetry.addData("Odometry Y : ", robot.driveTrain.localizer.getPose().getY());
         telemetry.addData("Odometry Heading : ", Math.toDegrees(robot.driveTrain.localizer.getPose().getHeading()));

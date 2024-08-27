@@ -29,7 +29,7 @@ public class MecanumDriveTrain extends DriveTrain {
 
     public PIDController tempForward = new PIDController(0.04, 0,0);//(0.1, 0, 0)
     public PIDController tempStrafe = new PIDController(0.04, 0, 0);//(0.06, 0, 0)
-    public PIDController tempTurn = new PIDController(0.007, 0, 0); //(0.04, 0, 0)
+    public PIDController tempTurn = new PIDController(0.5, 0, 0); //(0.04, 0, 0)
 
     public ThreeWheelTracker odometry;
 
@@ -136,20 +136,23 @@ public class MecanumDriveTrain extends DriveTrain {
     }
 
     // Parameter targetPoint : The target point (x , y , targetHeading , movementSpeed , lookaheadDistance)
-    public void goToPosition(CurvePoint targetPoint , CurvePoint headingPoint){ //TODO: save new pid to driveTrain
+    public void goToPosition(CurvePoint targetPoint , CurvePoint headingPoint, double speed){ //TODO: save new pid to driveTrain
 //        odometry.updateTracker();
         localizer.update();
 
+        if(headingPoint.faceTowardsAngle - localizer.getPose().getHeading() > Math.PI) headingPoint.faceTowardsAngle -= 2 * Math.PI;
+        if(headingPoint.faceTowardsAngle - localizer.getPose().getHeading() < -Math.PI) headingPoint.faceTowardsAngle += 2 * Math.PI;
+
         double movement_x = tempStrafe.calculate(localizer.getPose().getX() , targetPoint.x);
         double movement_y = tempForward.calculate(localizer.getPose().getY() , targetPoint.y);
-        double movement_turn = -tempTurn.calculate(Math.toDegrees(localizer.getPose().getHeading()), headingPoint.faceTowardsAngle); //degrees
+        double movement_turn = -tempTurn.calculate(localizer.getPose().getHeading(), headingPoint.faceTowardsAngle); //degrees
 
         telemetry.addData("PID X", movement_x);
         telemetry.addData("PID Y", movement_y);
         telemetry.addData("PID TURN", movement_turn);
 //        _logger.info("goToPosition X Y H: %.1f, %.1f, %.1f", targetPoint.x, targetPoint.y, headingPoint.faceTowardsAngle);
         _logger.info("PID X Y H : %.3f, %.3f, %.3f", movement_x, movement_y, movement_turn);
-        fieldCentric(movement_x , movement_y , movement_turn, 0.3);
+        fieldCentric(movement_x , movement_y , movement_turn, speed);
 
     }
 
@@ -200,7 +203,7 @@ public class MecanumDriveTrain extends DriveTrain {
 
             headingLookahead.faceTowardsAngle = targetHeading;
 
-            goToPosition(lookahead , headingLookahead);
+            goToPosition(lookahead , headingLookahead, 0.5);
 
             if(Math.sqrt(Math.pow(lastPointOfPath.x - robotLocation.x , 2) + Math.pow(lastPointOfPath.y - robotLocation.y , 2)) < 4){
                 stopState = System.currentTimeMillis() - startTime;
